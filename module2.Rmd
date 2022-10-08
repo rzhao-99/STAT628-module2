@@ -1,0 +1,64 @@
+---
+title: "Module 2"
+output: html_document
+date: "2022-10-07"
+---
+
+```{r}
+library(tidyverse)
+library(corrplot)
+library(MASS)
+library(DAAG)
+library(glmnet)
+```
+
+
+```{r}
+df <- read.csv("BodyFat.csv") # read dataset
+summary(df)
+```
+```{r}
+corrplot.mixed(cor(df[,2:17]),lower="number",upper = "circle")
+```
+```{r}
+# df %>% gather(key=variable,value=value,-IDNO) %>% 
+#   ggplot(aes(x=variable, y=value)) + 
+#   geom_boxplot(outlier.color = "red") + 
+#   coord_flip()
+
+df %>% gather(key=variable,value=value,-IDNO) %>% 
+  ggplot(aes(y=value)) + 
+  geom_boxplot(outlier.colour = "red",outlier.size = 0.5) + 
+  facet_wrap(~variable,scales="free")
+```
+```{r}
+df_cleaned <- df[-c(172,182),]
+full_model <- lm(BODYFAT~.-IDNO-DENSITY,data=df_cleaned)
+step.model <- stepAIC(full_model,direction = "both")
+summary(step.model)
+```
+```{r}
+# library(caret)
+# ctrl <- trainControl(method="cv",number=6)
+# model <- train(BODYFAT ~ AGE + WEIGHT + NECK + ABDOMEN + THIGH + FOREARM + WRIST,data=df_cleaned,method="lm",trControl=ctrl)
+```
+
+```{r}
+vif(step.model)
+```
+```{r}
+# remove WEIGHT
+md2 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN + THIGH + 
+    FOREARM + WRIST, data = df_cleaned)
+summary(md2)
+vif(md2)
+```
+```{r}
+# remove THIGH
+md3 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN + 
+    FOREARM + WRIST, data = df_cleaned)
+summary(md3)
+vif(md3)
+plot(md3)
+```
+
