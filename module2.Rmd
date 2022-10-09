@@ -61,6 +61,3 @@ summary(md3)
 vif(md3)
 plot(md3)
 ```
-
-
-# test for github
