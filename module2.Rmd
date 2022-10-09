@@ -60,4 +60,5 @@ md3 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN +
 summary(md3)
 vif(md3)
 plot(md3)
+# run all of the code
 ```
