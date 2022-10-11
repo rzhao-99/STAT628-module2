@@ -32,7 +32,9 @@ df %>% gather(key=variable,value=value,-IDNO) %>%
   facet_wrap(~variable,scales="free")
 ```
 ```{r}
-df_cleaned <- df[-c(172,182),]
+# 172 182 bodyfat too small
+# 42 too short
+df_cleaned <- df[-c(172,182,42),]
 full_model <- lm(BODYFAT~.-IDNO-DENSITY,data=df_cleaned)
 step.model <- stepAIC(full_model,direction = "both")
 summary(step.model)
@@ -44,21 +46,22 @@ summary(step.model)
 ```
 
 ```{r}
+step.model <- lm(BODYFAT ~ AGE + WEIGHT + NECK + ABDOMEN + HIP + 
+    THIGH + FOREARM + WRIST, data = df_cleaned)
 vif(step.model)
 ```
 ```{r}
-# remove WEIGHT
-md2 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN + THIGH + 
-    FOREARM + WRIST, data = df_cleaned)
+# remove weight hip
+md2 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN + 
+    THIGH + FOREARM + WRIST, data = df_cleaned)
 summary(md2)
 vif(md2)
+plot(md2)
 ```
 ```{r}
 # remove THIGH
-md3 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN + 
-    FOREARM + WRIST, data = df_cleaned)
-summary(md3)
-vif(md3)
-plot(md3)
-# run all of the code
+md2 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN  + FOREARM + WRIST, data = df_cleaned)
+summary(md2)
+vif(md2)
+plot(md2)
 ```
