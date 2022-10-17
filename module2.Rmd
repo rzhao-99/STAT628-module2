@@ -21,47 +21,53 @@ summary(df)
 corrplot.mixed(cor(df[,2:17]),lower="number",upper = "circle")
 ```
 ```{r}
-# df %>% gather(key=variable,value=value,-IDNO) %>% 
-#   ggplot(aes(x=variable, y=value)) + 
-#   geom_boxplot(outlier.color = "red") + 
-#   coord_flip()
+pairs(df[,c("BODYFAT","NECK",'WRIST')])
+```
 
+```{r}
 df %>% gather(key=variable,value=value,-IDNO) %>% 
   ggplot(aes(y=value)) + 
   geom_boxplot(outlier.colour = "red",outlier.size = 0.5) + 
   facet_wrap(~variable,scales="free")
 ```
-```{r}
+```{r message=FALSE, include=FALSE}
 # 172 182 bodyfat too small
 # 42 too short
 df_cleaned <- df[-c(172,182,42),]
 full_model <- lm(BODYFAT~.-IDNO-DENSITY,data=df_cleaned)
 step.model <- stepAIC(full_model,direction = "both")
-summary(step.model)
 ```
 ```{r}
 # library(caret)
 # ctrl <- trainControl(method="cv",number=6)
 # model <- train(BODYFAT ~ AGE + WEIGHT + NECK + ABDOMEN + THIGH + FOREARM + WRIST,data=df_cleaned,method="lm",trControl=ctrl)
 ```
+```{r}
+summary(step.model)
+```
 
 ```{r}
-step.model <- lm(BODYFAT ~ AGE + WEIGHT + NECK + ABDOMEN + HIP + 
-    THIGH + FOREARM + WRIST, data = df_cleaned)
 vif(step.model)
 ```
 ```{r}
-# remove weight hip
-md2 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN + 
-    THIGH + FOREARM + WRIST, data = df_cleaned)
+# remove weight hip thigh
+md2 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN +  
+    FOREARM + WRIST, data = df_cleaned)
 summary(md2)
 vif(md2)
 plot(md2)
 ```
+
+
 ```{r}
-# remove THIGH
-md2 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN  + FOREARM + WRIST, data = df_cleaned)
-summary(md2)
-vif(md2)
-plot(md2)
+# remove outliers 39
+df_c1=df_cleaned[-which(df_cleaned$IDNO == 39),]
+md3 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN +  
+    FOREARM + WRIST , data = df_c1)
+summary(md3)
+vif(md3)
+plot(md3)
 ```
+
+
+
