@@ -1,0 +1,81 @@
+---
+title: "Module 2"
+output: html_document
+date: "2022-10-18"
+---
+
+```{r message=FALSE, warning=FALSE}
+# import needed packages
+library(tidyverse)
+library(corrplot)
+library(MASS)
+library(DAAG)
+library(glmnet)
+```
+
+
+```{r}
+# read the raw dataset
+df <- read.csv("../data/BodyFat.csv") 
+summary(df)
+```
+
+```{r}
+# overview the raw data, for pairs(), you can add other variables
+corrplot.mixed(cor(df[,2:17]),lower="number",upper = "circle")
+pairs(df[,c("BODYFAT","NECK",'WRIST',"AGE",'WEIGHT',"HEIGHT")])
+```
+
+```{r}
+# boxplot for each variable to see if there are outliers
+df %>% gather(key=variable,value=value,-IDNO) %>% 
+  ggplot(aes(y=value)) + 
+  geom_boxplot(outlier.colour = "red",outlier.size = 0.5) + 
+  facet_wrap(~variable,scales="free")
+```
+
+```{r message=FALSE, include=FALSE}
+# data cleaning
+# 172, 182 bodyfat too small
+# 42 too short
+df_cleaned <- df[-c(172,182,42),]
+write.csv(df_cleaned,"../data/BoydFat_cleaned.csv")
+```
+
+```{r echo=TRUE}
+# build the full model with all of the variables first and then use stepwise algorithm to select variables.
+full_model <- lm(BODYFAT~.-IDNO-DENSITY,data=df_cleaned)
+step.model <- stepAIC(full_model,direction = "both")
+summary(step.model)
+```
+```{r}
+# assess the multicollinearity via vif()
+vif(step.model)
+```
+
+```{r}
+# remove weight and hip because their vif are greater than 10
+# remove thigh because it becomes insignificant after the last step.
+md2 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN +  
+    FOREARM + WRIST, data = df_cleaned)
+summary(md2)
+vif(md2)
+par(mfrow=c(2,2))
+plot(md2)
+```
+
+
+```{r}
+# remove the data with ID 39 because it is not only an outlier but also an influential point.
+# refit the final model and then evaluate it
+df_c1=df_cleaned[-which(df_cleaned$IDNO == 39),]
+md3 <- lm(BODYFAT ~ AGE  + NECK + ABDOMEN +  
+    FOREARM + WRIST , data = df_c1)
+summary(md3)
+vif(md3)
+par(mfrow=c(2,2))
+plot(md3)
+```
+
+
+
